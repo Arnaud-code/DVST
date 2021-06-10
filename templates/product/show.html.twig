@@ -1,0 +1,24 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+	{{ product.name }}
+{% endblock %}
+
+{% block body %}
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item">
+			<a href="{{ path('homepage') }}">Accueil</a>
+		</li>
+		<li class="breadcrumb-item">
+			<a href="{{ path('category_show', {'slug': product.category.slug }) }}">{{ product.category.name }}</a>
+		</li>
+		<li class="breadcrumb-item active">{{ product.name }}</li>
+	</ol>
+
+	<div class="container">
+		<h1>{{ product.name }}</h1>
+		<p>
+			<i class="fas fa-tools fa-x4"></i>
+			Page en construction</p>
+	</div>
+{% endblock %}

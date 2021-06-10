@@ -1,0 +1,51 @@
+{% extends "pressure/index.html.twig" %}
+
+{% block complement %}
+	<div class="container">
+		<h2 class="mt-5">Liste des relevés :</h2>
+	</div>
+
+	{% if records %}
+
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th scope="col">Date/heure</th>
+					<th scope="col">Temp. sol</th>
+					<th scope="col">Temp. Av.G</th>
+					<th scope="col">Temp. Av.D</th>
+					<th scope="col">Temp. Ar.G</th>
+					<th scope="col">Temp. Ar.D</th>
+					<th scope="col">Press. Av.G</th>
+					<th scope="col">Press. Av.D</th>
+					<th scope="col">Press. Ar.G</th>
+					<th scope="col">Press. Ar.D</th>
+					<th scope="col"></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for record in records %}
+					<tr>
+						<th scope="row">{{ record.datetime.date|date("d/m/Y h:i") }}</th>
+						<td>{{ record.tempGround }}</td>
+						<td>{{ record.tempFrontLeft }}</td>
+						<td>{{ record.tempFrontRight }}</td>
+						<td>{{ record.tempRearLeft }}</td>
+						<td>{{ record.tempRearRight }}</td>
+						<td>{{ record.pressFrontLeft|number_format(2, ',') }}</td>
+						<td>{{ record.pressFrontRight|number_format(2, ',') }}</td>
+						<td>{{ record.pressRearLeft|number_format(2, ',') }}</td>
+						<td>{{ record.pressRearRight|number_format(2, ',') }}</td>
+						<td>
+							<a href="#" class="btn btn-primary">
+								<i class="fas fa-trash"></i>
+							</a>
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	{% else %}
+		<p>Aucun eregistrement</p>
+	{% endif %}
+{% endblock %}

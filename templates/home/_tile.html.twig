@@ -1,0 +1,10 @@
+<div class="col">
+	<a href="{{ path('category_show', {'slug': item.slug}) }}">
+		<div class="col" style="height: 250px; text-align: center; background: #e5e7e7; border-radius: 15px">
+			<h3>{{ item.name }}</h3>
+			<p>
+				<i class="fas fa-{{ item.icon }} fa-4x"></i>
+			</p>
+		</div>
+	</a>
+</div>

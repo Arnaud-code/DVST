@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pression
+{% endblock %}
+
+{% block body %}
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item">
+			<a href="{{ path('homepage') }}">Accueil</a>
+		</li>
+		<li class="breadcrumb-item">
+			<a href="{{ path('category_show', {'slug': product.category.slug }) }}">{{ product.category.name }}</a>
+		</li>
+		<li class="breadcrumb-item active">{{ product.name }}</li>
+	</ol>
+
+	<div class="container">
+		<h1>Pression</h1>
+
+		<div class="card mb-3" style="background: #e5e7e7">
+			<div class="card-header">Configuration</div>
+			<div class="card-body">
+				<p class="card-text">Pneus :
+					{{ app.session.get('tire').name }}</p>
+				<p class="card-text">Pilote :
+					{{ app.session.get('driver').name }}</p>
+				<p class="card-text">Circuit :
+					{{ app.session.get('circuit').name }}</p>
+				<a href="{{ path("pressure_conditions") }}" class="btn btn-primary">Changer</a>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col"></div>
+		</div>
+
+		{% include "pressure/_buttons.html.twig" %}
+	</div>
+
+	{% block complement %}{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,6 @@
+<a href="{{ path('product_show', {'category_slug': p.category.slug, 'slug': p.slug}) }}">
+	<div class="mb-5" style="height: 150px; text-align: center; background: #e5e7e7; border-radius: 15px">
+		<i class="fas fa-{{ p.icon }} fa-4x"></i>
+		<h2>{{ p.name }}</h2>
+	</div>
+</a>

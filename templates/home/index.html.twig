@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil
+{% endblock %}
+
+{% block body %}
+	<h1 class="mt-5" style="text-align: center">Dolexia Web Platform</h1>
+	{% if showcases %}
+		{% for item in showcases %}
+			{% include "home/_showcase.html.twig" %}
+		{% endfor %}
+	{% endif %}
+	{% if tiles %}
+		<div class="container mt-5">
+			<h2>Autres services</h2>
+			<div class="row" style="display: flex">
+				{% for item in tiles %}
+					{% include "home/_tile.html.twig" %}
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "pressure/index.html.twig" %}
+
+{% block complement %}
+	<div class="container mt-5">
+
+		<h1>Ajouter un enregistrement</h1>
+
+		{{ form_start(formView) }}
+
+		{{ form_errors(formView) }}
+
+		{{ form_row(formView.tempGround) }}
+
+		<div class="col">
+			<div class="row">
+				<div class="col" style="border: 1px solid grey">
+					Avant Gauche :
+					{{ form_row(formView.tempFrontLeft) }}
+					{{ form_row(formView.pressFrontLeft) }}
+				</div>
+				<div class="col" style="border: 1px solid grey">
+					Avant Droit :
+					{{ form_row(formView.tempFrontRight) }}
+					{{ form_row(formView.pressFrontRight) }}
+				</div>
+			</div>
+			<div class="row">
+				<div class="col" style="border: 1px solid grey">
+					Arrière Gauche :
+					{{ form_row(formView.tempRearLeft) }}
+					{{ form_row(formView.pressRearLeft) }}
+				</div>
+				<div class="col" style="border: 1px solid grey">
+					Arrière Droit :
+					{{ form_row(formView.tempRearRight) }}
+					{{ form_row(formView.pressRearRight) }}
+				</div>
+			</div>
+		</div>
+
+		{# {{ form_row(formView.tempFrontLeft) }} #}
+		{# {{ form_row(formView.tempFrontRight) }} #}
+
+		<button type="submit" class="btn btn-primary">
+			<i class="fas fa-arrow-right"></i>
+		</button>
+
+		{{ form_end(formView) }}
+
+	</div>
+{% endblock %}

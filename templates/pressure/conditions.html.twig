@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pression
+{% endblock %}
+
+{% block body %}
+	<div class="container">
+
+		<h1>Conditions</h1>
+
+		{{ form_start(formView) }}
+
+		{{ form_errors(formView) }}
+
+		{{ form_row(formView.tire) }}
+		{{ form_row(formView.driver) }}
+		{{ form_row(formView.circuit) }}
+
+		<button type="submit" class="btn btn-primary">
+			<i class="fas fa-arrow-right"></i>
+		</button>
+
+		{{ form_end(formView) }}
+
+	</div>
+{% endblock %}
