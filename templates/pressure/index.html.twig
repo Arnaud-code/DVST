@@ -21,11 +21,11 @@
 			<div class="card-header">Configuration</div>
 			<div class="card-body">
 				<p class="card-text">Pneus :
-					{{ app.session.get('tire').name }}</p>
+					{{ sessionTire.name }}</p>
 				<p class="card-text">Pilote :
-					{{ app.session.get('driver').name }}</p>
+					{{ sessionDriver.name }}</p>
 				<p class="card-text">Circuit :
-					{{ app.session.get('circuit').name }}</p>
+					{{ sessionCircuit.name }}</p>
 				<a href="{{ path("pressure_conditions") }}" class="btn btn-primary">Changer</a>
 			</div>
 		</div>

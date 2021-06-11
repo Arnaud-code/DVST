@@ -25,8 +25,9 @@
 			</thead>
 			<tbody>
 				{% for record in records %}
+
 					<tr>
-						<th scope="row">{{ record.datetime.date|date("d/m/Y h:i") }}</th>
+						<th scope="row">{{ record.datetime|date("d/m/Y h:i") }}</th>
 						<td>{{ record.tempGround }}</td>
 						<td>{{ record.tempFrontLeft }}</td>
 						<td>{{ record.tempFrontRight }}</td>

@@ -1,4 +1,7 @@
 {
+    "bluemmb/faker-picsum-photos-provider": {
+        "version": "v2.0"
+    },
     "composer/package-versions-deprecated": {
         "version": "1.11.99.2"
     },
@@ -112,6 +115,9 @@
     "laminas/laminas-zendframework-bridge": {
         "version": "1.1.1"
     },
+    "liorchamla/faker-prices": {
+        "version": "2.0.0"
+    },
     "monolog/monolog": {
         "version": "2.2.0"
     },
@@ -142,8 +148,11 @@
             "./config/packages/sensio_framework_extra.yaml"
         ]
     },
+    "stripe/stripe-php": {
+        "version": "v7.83.0"
+    },
     "symfony/asset": {
-        "version": "v5.1.11"
+        "version": "v5.2.10"
     },
     "symfony/cache": {
         "version": "v5.1.11"
@@ -304,6 +313,9 @@
         "version": "v1.23.0"
     },
     "symfony/polyfill-php80": {
+        "version": "v1.23.0"
+    },
+    "symfony/polyfill-php81": {
         "version": "v1.23.0"
     },
     "symfony/profiler-pack": {

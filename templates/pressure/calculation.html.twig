@@ -3,7 +3,7 @@
 {% block complement %}
 	<div class="container mt-5">
 
-		<h1>Ajouter un enregistrement</h1>
+		<h1>Calcul des pressions</h1>
 
 		{{ form_start(formView) }}
 
@@ -16,24 +16,28 @@
 				<div class="col" style="border: 1px solid grey">
 					Avant Gauche :
 					{{ form_row(formView.tempFrontLeft) }}
-					{{ form_row(formView.pressFrontLeft) }}
+					Press.
+					{{ pressureRecord.pressFrontLeft|number_format(2, ',') }}
 				</div>
 				<div class="col" style="border: 1px solid grey">
 					Avant Droit :
 					{{ form_row(formView.tempFrontRight) }}
-					{{ form_row(formView.pressFrontRight) }}
+					Press.
+					{{ pressureRecord.pressFrontRight|number_format(2, ',') }}
 				</div>
 			</div>
 			<div class="row">
 				<div class="col" style="border: 1px solid grey">
 					Arrière Gauche :
 					{{ form_row(formView.tempRearLeft) }}
-					{{ form_row(formView.pressRearLeft) }}
+					Press.
+					{{ pressureRecord.pressRearLeft|number_format(2, ',') }}
 				</div>
 				<div class="col" style="border: 1px solid grey">
 					Arrière Droit :
 					{{ form_row(formView.tempRearRight) }}
-					{{ form_row(formView.pressRearRight) }}
+					Press.
+					{{ pressureRecord.pressRearRight|number_format(2, ',') }}
 				</div>
 			</div>
 		</div>
