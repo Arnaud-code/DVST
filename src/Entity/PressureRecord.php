@@ -100,6 +100,7 @@ class PressureRecord
     public function setUser(?User $user): self
     {
         $this->user = $user;
+        // $user->addPressureRecord($this);
 
         return $this;
     }

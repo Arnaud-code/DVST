@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PressureRecord;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -47,4 +48,37 @@ class PressureRecordRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getSummaryByUser(User $user)
+    {
+        return $this->createQueryBuilder('pr')
+            ->select('IDENTITY(pr.tire) as tire_id')
+            ->addSelect('tr.name as tire')
+            // ->addSelect("(" . $tr->getTires()->findBy('t')
+            //     ->select('t')
+            //     ->where('t = pr.tire') . ") AS tire1")
+            ->addSelect('IDENTITY(pr.driver) as driver_id')
+            ->addSelect('dr.name as driver')
+            ->addSelect('IDENTITY(pr.circuit) as circuit_id')
+            ->addSelect('cr.name as circuit')
+            ->addSelect("(" . $this->createQueryBuilder('pr2')
+                ->select('count(pr2)')
+                ->where('pr2.user = pr.user')
+                ->andWhere('pr2.tire = pr.tire')
+                ->andWhere('pr2.driver = pr.driver')
+                ->andWhere('pr2.circuit = pr.circuit') . ") AS counter")
+            ->where('pr.user = :user')
+            ->setParameter('user', $user)
+            // ->innerJoin($tr->createQueryBuilder('tr')->select())
+            ->innerJoin('App\Entity\Tire', 'tr', 'WITH', 'IDENTITY(pr.tire) = tr.id')
+            ->innerJoin('App\Entity\Driver', 'dr', 'WITH', 'IDENTITY(pr.driver) = dr.id')
+            ->innerJoin('App\Entity\Circuit', 'cr', 'WITH', 'IDENTITY(pr.circuit) = cr.id')
+            ->orderBy('pr.tire', 'ASC')
+            ->addOrderBy('pr.driver', 'ASC')
+            ->addOrderBy('pr.circuit', 'ASC')
+            ->distinct()
+            ->getQuery()
+            // ->getSql();
+            ->getResult();
+    }
 }

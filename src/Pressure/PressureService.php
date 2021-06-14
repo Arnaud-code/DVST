@@ -32,26 +32,29 @@ class PressureService
 
     public function getSessionTire(): ?Tire
     {
-        if (!$this->session->get('sessionTireId')) {
+        $tire = $this->session->get('sessionTireId');
+        if (!$tire) {
             return null;
         }
-        return $this->tr->find($this->session->get('sessionTireId'));
+        return $this->tr->find($tire);
     }
 
     public function getSessionDriver(): ?Driver
     {
-        if (!$this->session->get('sessionDriverId')) {
+        $driver = $this->session->get('sessionDriverId');
+        if (!$driver) {
             return null;
         }
-        return $this->dr->find($this->session->get('sessionDriverId'));
+        return $this->dr->find($driver);
     }
 
     public function getSessionCircuit(): ?Circuit
     {
-        if (!$this->session->get('sessionCircuitId')) {
+        $circuit = $this->session->get('sessionCircuitId');
+        if (!$circuit) {
             return null;
         }
-        return $this->cr->find($this->session->get('sessionCircuitId'));
+        return $this->cr->find($circuit);
     }
 
     public function deltaPressure($temp, $coef)
@@ -62,9 +65,13 @@ class PressureService
 
     public function getPressures(PressureRecord $pressureRecord, $records)
     {
+        // ============================================================================================================================
         // 1/ CALCUL DES PRESSIONS CORRIGEES (POUR UNE TEMPERATURE ETALON)
 
         // 1.1/ Initialisation des tableaux de pressions intermédiaires
+
+        // Tableau des deltas de pressions par pneu
+        $deltaPressureTires = [];
 
         // Tableau de tableaux de pressions corrigées par pneu
         $correctedPressures = [[], [], [], []];
@@ -72,13 +79,12 @@ class PressureService
         // Tableau des moyennes de pressions corrigées par pneu
         $averagePressures = [];
 
-        // 1.3/ Boucle de calcul des pressions corrigées par ligne d'enregistrement
+        // 1.2/ Calcul des pressions corrigées pour chaque relevé
         foreach ($records as $record) {
 
-            // 1.3.1/ Calcul du delta de pression relatif à la différence de température du sol par rapport à la température étalon
-            $deltaPressureTrack = $this->deltaPressure($record->getTempGround(), PressureService::COEF_TRACK);
+            // 1.2.1/ Stockage des informations du relevé
 
-            // 1.3.2/ Récupération des températures des pneus dans un tableau
+            // Tableau de températures des pneus
             $tempTires = [
                 $record->getTempFrontLeft(),
                 $record->getTempFrontRight(),
@@ -86,7 +92,7 @@ class PressureService
                 $record->getTempRearRight(),
             ];
 
-            // 1.3.3/ Récupération des pressions des pneus dans un tableau
+            // Tableau de pressions des pneus
             $pressTires = [
                 $record->getPressFrontLeft(),
                 $record->getPressFrontRight(),
@@ -94,36 +100,39 @@ class PressureService
                 $record->getPressRearRight(),
             ];
 
-            // calcul des deltas de pression relatifs aux différences de température des pneus par rapport à la température étalon
-            // initialisation du tableau
-            $deltaPressureTires = [];
+            // 1.2.2/ Calcul du delta de pression relatif à la différence de température du sol par rapport à la température étalon
+            $deltaPressureTrack = $this->deltaPressure($record->getTempGround(), PressureService::COEF_TRACK);
 
-            // boucle de calcul des deltas par pneu
+            // 1.2.3/ Calcul des deltas de pression relatifs aux différences de température des pneus par rapport à la température étalon
             foreach ($tempTires as $tempTire) {
-
-                // enregistrement du delta dans le tableau
                 $deltaPressureTires[] = $this->deltaPressure($tempTire, PressureService::COEF_AIR);
             }
 
-            // enregistrement des pressions corrigées dans les tableaux respectifs
-            for ($i = 0; $i < 4; $i++) {
+            // 1.2.4/ Calcul des pressions corrigées pour chaque pneu
+            for ($i = 0; $i < sizeof($correctedPressures); $i++) {
                 $correctedPressures[$i][] = $pressTires[$i] + $deltaPressureTrack - $deltaPressureTires[$i];
             }
         }
 
-        // calcul des moyennes des pressions corrigées par pneu
-        for ($i = 0; $i < 4; $i++) {
+        // ============================================================================================================================
+        // 2/ CALCUL DES MOYENNES DES PRESSIONS CORRIGEES
+        for ($i = 0; $i < sizeof($correctedPressures); $i++) {
             $averagePressures[] = array_sum($correctedPressures[$i]) / count($correctedPressures[$i]);
         }
         // ============================================================================================================================
+        // 3/ CALCUL DES PRESSIONS (POUR DES TEMPERATURES DONNEES)
 
-        // init
+        // 3.1/ Initialisation des tableaux de pressions intermédiaires
+
+        // Tableau des deltas actuels de pressions par pneu
+        $actualDeltaPressureTires = [];
+
+        // Tableau de pressions calculées par pneu
         $calculatedPressures = [];
 
-        // Calcul du delta de pression relatif à la différence de température du sol par rapport à la température étalon
-        $actualDeltaPressureTrack = $this->deltaPressure($pressureRecord->getTempGround(), PressureService::COEF_TRACK);
+        // 3.2/ Calcul des pressions
 
-        // Récupération des températures des pneus dans un tableau
+        // 3.2.1/ Stockage des températures actuelles des pneus dans le tableau
         $actualTempTires = [
             $pressureRecord->getTempFrontLeft(),
             $pressureRecord->getTempFrontRight(),
@@ -131,21 +140,16 @@ class PressureService
             $pressureRecord->getTempRearRight(),
         ];
 
-        // calcul des deltas de pression relatifs aux différences de température des pneus par rapport à la température étalon
-        // initialisation du tableau
-        $actualDeltaPressureTires = [];
+        // 3.2.2/ Calcul du delta de pression relatif à la différence de température du sol par rapport à la température étalon
+        $actualDeltaPressureTrack = $this->deltaPressure($pressureRecord->getTempGround(), PressureService::COEF_TRACK);
 
-        // boucle de calcul des deltas par pneu
+        // 3.2.3/ Calcul des deltas de pression relatifs aux différences de température des pneus par rapport à la température étalon
         foreach ($actualTempTires as $actualTempTire) {
-
-            // enregistrement du delta dans le tableau
             $actualDeltaPressureTires[] = $this->deltaPressure($actualTempTire, PressureService::COEF_AIR);
         }
 
-        // 
-        for ($i = 0; $i < 4; $i++) {
-
-            // 
+        // 3.2.4/ Calcul de la pression par pneu
+        for ($i = 0; $i < sizeof($averagePressures); $i++) {
             $calculatedPressures[] = $averagePressures[$i] + $actualDeltaPressureTires[$i] - $actualDeltaPressureTrack;
         }
 

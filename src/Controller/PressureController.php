@@ -5,33 +5,31 @@ namespace App\Controller;
 use App\Entity\PressureRecord;
 use App\Entity\Product;
 use App\Entity\Tire;
+use App\Entity\User;
 use App\Form\PressureAddType;
 use App\Form\PressureCalculType;
 use App\Form\PressureConditionsType;
 use App\Pressure\PressureService;
-use App\Repository\CircuitRepository;
-use App\Repository\DriverRepository;
 use App\Repository\PressureRecordRepository;
 use App\Repository\ProductRepository;
-use App\Repository\TireRepository;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use PhpParser\BuilderFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 class PressureController extends AbstractController
 {
+    protected $pressureRecordRepository;
     protected $productRepository;
     protected $session;
 
-    public function __construct(ProductRepository $productRepository, SessionInterface $session, PressureService $pressureService)
+    public function __construct(PressureRecordRepository $pressureRecordRepository, ProductRepository $productRepository, SessionInterface $session, PressureService $pressureService)
     {
+        $this->pressureRecordRepository = $pressureRecordRepository;
         $this->product = $productRepository->findOneBy(['slug' => 'pressure']);
         $this->session = $session;
         $this->pressureService = $pressureService;
@@ -60,12 +58,13 @@ class PressureController extends AbstractController
             return $this->redirectToRoute("pressure_conditions");
         }
 
-        return $this->render('pressure/homepage.html.twig', [
-            'product' => $this->product,
-            'sessionTire' => $sessionTire,
-            'sessionDriver' => $sessionDriver,
-            'sessionCircuit' => $sessionCircuit,
-        ]);
+        return $this->redirectToRoute('pressure_list');
+        // return $this->render('pressure/index.html.twig', [
+        //     'product' => $this->product,
+        //     'sessionTire' => $sessionTire,
+        //     'sessionDriver' => $sessionDriver,
+        //     'sessionCircuit' => $sessionCircuit,
+        // ]);
     }
 
     /**
@@ -92,23 +91,30 @@ class PressureController extends AbstractController
 
         $formView = $form->createView();
 
+        $summaries = $this->pressureRecordRepository->getSummaryByUser($this->getUser());
+        // dd($summaries);
+
+        // $pressureRecords = $this->getUser()->getPressureRecords();
+        // dd($pressureRecords);
+
+
         return $this->render('pressure/conditions.html.twig', [
             'formView' => $formView,
+            'summaries' => $summaries,
         ]);
     }
-
 
     /**
      * @Route("/tool/pressure/list", name="pressure_list")
      */
-    public function list(PressureRecordRepository $pressureRecordRepository, UserInterface $user, TireRepository $tr, DriverRepository $dr, CircuitRepository $cr)
+    public function list()
     {
         $sessionTire = $this->pressureService->getSessionTire();
         $sessionDriver = $this->pressureService->getSessionDriver();
         $sessionCircuit = $this->pressureService->getSessionCircuit();
 
-        $records = $pressureRecordRepository->findBy([
-            'user' => $user,
+        $records = $this->pressureRecordRepository->findBy([
+            'user' => $this->getUser(),
             'tire' => $sessionTire,
             'driver' => $sessionDriver,
             'circuit' => $sessionCircuit,
@@ -158,6 +164,7 @@ class PressureController extends AbstractController
                 ->setCircuit($sessionCircuit)
                 ->setDatetime(new DateTime('now'));
 
+            // dd($pressureRecord);
             $em->persist($pressureRecord);
             $em->flush();
 
@@ -178,7 +185,7 @@ class PressureController extends AbstractController
     /**
      * @Route("/tool/pressure/calculation", name="pressure_calculation")
      */
-    public function calculation(Request $request, PressureRecordRepository $pressureRecordRepository, UserInterface $user)
+    public function calculation(Request $request, PressureRecordRepository $pressureRecordRepository)
     {
         $sessionTire = $this->pressureService->getSessionTire();
         $sessionDriver = $this->pressureService->getSessionDriver();
@@ -191,7 +198,7 @@ class PressureController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $records = $pressureRecordRepository->findBy([
-                'user' => $user,
+                'user' => $this->getUser(),
                 'tire' => $sessionTire,
                 'driver' => $sessionDriver,
                 'circuit' => $sessionCircuit,
@@ -217,5 +224,17 @@ class PressureController extends AbstractController
             'sessionCircuit' => $sessionCircuit,
             'pressureRecord' => $pressureRecord,
         ]);
+    }
+
+    /**
+     * @Route("/tool/pressure/set-conditions/{tire}/{driver}/{circuit}", name="pressure_set-conditions")
+     */
+    public function setConditions($tire, $driver, $circuit)
+    {
+        $this->session->set('sessionTireId', $tire);
+        $this->session->set('sessionDriverId', $driver);
+        $this->session->set('sessionCircuitId', $circuit);
+
+        return $this->redirectToRoute('pressure');
     }
 }
