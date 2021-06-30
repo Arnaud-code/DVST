@@ -1,0 +1,71 @@
+{% extends 'pressure/base.html.twig' %}
+
+{% block combination %}
+	{% include "pressure/_combination-selector.html.twig" %}
+{% endblock %}
+
+{% block content %}
+
+	<div class="card mt-5">
+
+		<div class="card-header">
+			<h2>Relevés existants</h2>
+		</div>
+
+		<div class="card-body">
+
+			{% if combinations %}
+
+				<table class="table table-hover align-middle">
+					<thead>
+						<tr>
+							<th scope="col">Pneu</th>
+							<th scope="col">Pilote</th>
+							<th scope="col">Circuit</th>
+							<th scope="col"></th>
+							<th scope="col"></th>
+						</tr>
+					</thead>
+					<tbody>
+
+						{% for combination in combinations %}
+
+							<tr>
+								<td>
+									{{ combination.tire }}
+								</td>
+								<td>
+									{{ combination.driver }}
+								</td>
+								<td>
+									{{ combination.circuit }}
+								</td>
+								<td class="text-center">
+									<span class="badge bg-info rounded-pill">
+										{{ combination.counter }}
+									</span>
+								</td>
+								<td
+									class="text-center">
+									{# <button class="btn btn-primary">
+																			<i class="fas fa-eye"></i>
+																		</button> #}
+									<a href="{{ path('pressure_set-combination', {'tire': combination.tire_id, 'driver': combination.driver_id, 'circuit': combination.circuit_id}) }}" class="btn btn-primary">
+										<i class="fas fa-eye"></i>
+									</a>
+									<button class="btn btn-danger">
+										<i class="fas fa-trash"></i>
+									</button>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<p>Aucun eregistrement</p>
+			{% endif %}
+
+		</div>
+	</div>
+
+{% endblock %}

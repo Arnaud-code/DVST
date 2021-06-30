@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ProductRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -41,6 +43,21 @@ class Product
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $icon;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $access;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Subscription::class, mappedBy="product")
+     */
+    private $subscriptions;
+
+    public function __construct()
+    {
+        $this->subscriptions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -103,6 +120,48 @@ class Product
     public function setIcon(?string $icon): self
     {
         $this->icon = $icon;
+
+        return $this;
+    }
+
+    public function getAccess(): ?string
+    {
+        return $this->access;
+    }
+
+    public function setAccess(string $access): self
+    {
+        $this->access = $access;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Subscription[]
+     */
+    public function getSubscriptions(): Collection
+    {
+        return $this->subscriptions;
+    }
+
+    public function addSubscription(Subscription $subscription): self
+    {
+        if (!$this->subscriptions->contains($subscription)) {
+            $this->subscriptions[] = $subscription;
+            $subscription->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscription(Subscription $subscription): self
+    {
+        if ($this->subscriptions->removeElement($subscription)) {
+            // set the owning side to null (unless already changed)
+            if ($subscription->getProduct() === $this) {
+                $subscription->setProduct(null);
+            }
+        }
 
         return $this;
     }

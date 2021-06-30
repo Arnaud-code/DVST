@@ -1,13 +1,20 @@
-<div class="container mt-5">
-	<div class="row">
-		<div class="col">
-			<a href="{{ path("pressure_list") }}" class="btn btn-primary">Liste</a>
-		</div>
-		<div class="col">
-			<a href="{{ path("pressure_add") }}" class="btn btn-primary">Nouveau</a>
-		</div>
-		<div class="col">
-			<a href="{{ path("pressure_calculation") }}" class="btn btn-primary">Calcul</a>
-		</div>
+<div class="mt-5" style="display: flex; flex-direction: row; justify-content: space-around">
+	<div>
+		<a href="{{ path("pressure_list") }}" class="btn btn-primary">
+			<i class="fas fa-list"></i>
+			Liste
+		</a>
+	</div>
+	<div>
+		<a href="{{ path("pressure_edit") }}" class="btn btn-primary">
+			<i class="fas fa-plus"></i>
+			Nouveau
+		</a>
+	</div>
+	<div>
+		<a href="{{ path("pressure_calculation") }}" class="btn btn-primary">
+			<i class="fas fa-calculator"></i>
+			Calcul
+		</a>
 	</div>
 </div>

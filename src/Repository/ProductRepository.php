@@ -3,7 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Product;
+use App\Entity\User;
+use App\Repository\SubscriptionRepository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -14,9 +17,12 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ProductRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    private $sr;
+
+    public function __construct(ManagerRegistry $registry, SubscriptionRepository $sr)
     {
         parent::__construct($registry, Product::class);
+        $this->sr = $sr;
     }
 
     // /**
@@ -47,4 +53,66 @@ class ProductRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function getProductsByUser(User $user)
+    {
+        // return $this->createQueryBuilder('pr1')
+        //     ->select('IDENTITY(pr1.tire) as tire_id')
+        //     ->addSelect('tr.name as tire')
+        //     ->addSelect('IDENTITY(pr1.driver) as driver_id')
+        //     ->addSelect('dr.name as driver')
+        //     ->addSelect('IDENTITY(pr1.circuit) as circuit_id')
+        //     ->addSelect('cr.name as circuit')
+        //     ->addSelect("(" . $this->createQueryBuilder('pr2')
+        //         ->select('count(pr2)')
+        //         ->where('pr2.user = pr1.user')
+        //         ->andWhere('pr2.tire = pr1.tire')
+        //         ->andWhere('pr2.driver = pr1.driver')
+        //         ->andWhere('pr2.circuit = pr1.circuit') . ") AS counter")
+        //     ->where('pr1.user = :user')
+        //     ->setParameter('user', $user)
+        //     ->innerJoin('App\Entity\Tire', 'tr', 'WITH', 'IDENTITY(pr1.tire) = tr.id')
+        //     ->innerJoin('App\Entity\Driver', 'dr', 'WITH', 'IDENTITY(pr1.driver) = dr.id')
+        //     ->innerJoin('App\Entity\Circuit', 'cr', 'WITH', 'IDENTITY(pr1.circuit) = cr.id')
+        //     ->orderBy('pr1.tire', 'ASC')
+        //     ->addOrderBy('pr1.driver', 'ASC')
+        //     ->addOrderBy('pr1.circuit', 'ASC')
+        //     ->distinct()
+        //     ->getQuery()
+        //     ->getResult();
+
+        // return $this->sr->createQueryBuilder('s')
+        //     ->select('s.id as subscription')
+        //     ->addSelect('IDENTITY(s.product) as product')
+        //     ->addSelect('IDENTITY(s.user) as user')
+        //     ->andWhere('IDENTITY(s.user) = :user')
+        //     ->setParameter('user', $user->getId())
+        //     ->getDQL();
+
+        return $this->createQueryBuilder('p')
+            ->select('p.id')
+            ->addSelect('IDENTITY(p.category)')
+            ->addSelect('p.name')
+            ->addSelect('p.slug')
+            ->addSelect('p.sort')
+            ->addSelect('p.icon')
+            ->addSelect('p.access')
+            ->addSelect('sub.subscription')
+            // ->leftJoin('App\Entity\Subscription', 's', Join::ON, 'p.id = IDENTITY(s.product)')
+            ->leftJoin(
+                ($this->sr->createQueryBuilder('s')
+                    ->select('s.id as subscription')
+                    ->addSelect('IDENTITY(s.product) as product')
+                    ->addSelect('IDENTITY(s.user) as user')
+                    ->andWhere('s.user = :user')
+                    ->setParameter('user', $user)),
+                'sub',
+                'ON',
+                'p.id = sub.product'
+            )
+            // ->andWhere()
+            // ->getDQL();
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	Pression
+{% endblock %}
+
+{% block body %}
+
+	{% include "pressure/_breadcrumb.html.twig" %}
+
+	<div class="container">
+
+		<h1>Pression</h1>
+
+		<div class="row">
+		<div class="col-10 offset-1">
+			{% block combination %}{% endblock %}
+		</div>
+		</div>
+
+		{% block buttons %}{% endblock %}
+
+		{% block content %}{% endblock %}
+	</div>
+
+{% endblock %}

@@ -1,0 +1,84 @@
+{{ form_start(formView) }}
+
+{{ form_errors(formView) }}
+
+<div class="card mt-3">
+	<div class="card-header">
+		<h2>Configuration</h2>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-9">
+				<div style="display: flex; flex-direction: column; justify-content: center; align-items: center">
+					<div style="width: 100%">
+						<table style="width: 100%">
+							<tbody>
+								<tr>
+									<td>
+										Pneu
+									</td>
+									<td>
+										{{ form_row(formView.tire) }}
+									</td>
+									<td>
+										<button class="btn btn-success">
+											<i class="fas fa-plus"></i>
+										</button>
+										<button class="btn btn-warning">
+											<i class="fas fa-cog"></i>
+										</button>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										Pilote
+									</td>
+									<td>
+										{{ form_row(formView.driver) }}
+									</td>
+									<td>
+										<button class="btn btn-success">
+											<i class="fas fa-plus"></i>
+										</button>
+										<button class="btn btn-warning">
+											<i class="fas fa-cog"></i>
+										</button>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										Circuit
+									</td>
+									<td>
+										{{ form_row(formView.circuit) }}
+									</td>
+									<td>
+										<button class="btn btn-success">
+											<i class="fas fa-plus"></i>
+										</button>
+										<button class="btn btn-warning">
+											<i class="fas fa-cog"></i>
+										</button>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-3">
+				<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%">
+					<div>
+						<button type="submit" class="btn btn-primary">
+							<i class="fas fa-check"></i>
+							Valider
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{{ form_end(formView) }}

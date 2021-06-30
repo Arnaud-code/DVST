@@ -2,14 +2,17 @@
 
 namespace App\Pressure;
 
-use App\Entity\Circuit;
-use App\Entity\Driver;
 use App\Entity\PressureRecord;
-use App\Entity\Tire;
+use App\Entity\User;
 use App\Repository\CircuitRepository;
 use App\Repository\DriverRepository;
+use App\Repository\PressureRecordRepository;
 use App\Repository\TireRepository;
+use DateTime;
+use Doctrine\DBAL\Types\BooleanType;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class PressureService
 {
@@ -21,40 +24,115 @@ class PressureService
     protected $tr;
     protected $dr;
     protected $cr;
+    protected $prr;
+    protected $em;
+    protected $token;
 
-    public function __construct(SessionInterface $session, TireRepository $tr, DriverRepository $dr, CircuitRepository $cr)
-    {
+    public function __construct(
+        SessionInterface $session,
+        TireRepository $tr,
+        DriverRepository $dr,
+        CircuitRepository $cr,
+        PressureRecordRepository $prr,
+        EntityManagerInterface $em,
+        TokenStorageInterface $token
+    ) {
         $this->session = $session;
         $this->tr = $tr;
         $this->dr = $dr;
         $this->cr = $cr;
+        $this->prr = $prr;
+        $this->em = $em;
+        $this->user = $token->getToken()->getUser();
     }
 
-    public function getSessionTire(): ?Tire
+    public function isCheckedUser(PressureRecord $pressureRecord)
     {
-        $tire = $this->session->get('sessionTireId');
-        if (!$tire) {
-            return null;
+        if (
+            $this->user !== $pressureRecord->getTire()->getUser() ||
+            $this->user !== $pressureRecord->getDriver()->getUser() ||
+            $this->user !== $pressureRecord->getCircuit()->getUser()
+        ) {
+            return false;
         }
-        return $this->tr->find($tire);
+        return true;
     }
 
-    public function getSessionDriver(): ?Driver
+    public function getSessionCombination(): ?PressureRecord
     {
-        $driver = $this->session->get('sessionDriverId');
-        if (!$driver) {
+        $tireId = $this->session->get('tireId');
+        $driverId = $this->session->get('driverId');
+        $circuitId = $this->session->get('circuitId');
+
+        if (!$tireId || !$driverId || !$circuitId) {
             return null;
         }
-        return $this->dr->find($driver);
+
+        $pressureRecord = new PressureRecord;
+        $pressureRecord
+            ->setTire($this->tr->find($tireId))
+            ->setDriver($this->dr->find($driverId))
+            ->setCircuit($this->cr->find($circuitId));
+
+        if (!$this->isCheckedUser($pressureRecord)) {
+            return null;
+        }
+
+        return $pressureRecord;
     }
 
-    public function getSessionCircuit(): ?Circuit
+    public function setSessionCombination(PressureRecord $pressureRecord): void
     {
-        $circuit = $this->session->get('sessionCircuitId');
-        if (!$circuit) {
-            return null;
+        if (!$this->isCheckedUser($pressureRecord)) {
+            return;
         }
-        return $this->cr->find($circuit);
+
+        $this->session->set('tireId', $pressureRecord->getTire()->getId());
+        $this->session->set('driverId', $pressureRecord->getDriver()->getId());
+        $this->session->set('circuitId', $pressureRecord->getCircuit()->getId());
+    }
+
+    public function getRecords()
+    {
+        $records = $this->prr->findBy([
+            'user' => $this->user,
+            'tire' => $this->getSessionCombination()->getTire(),
+            'driver' => $this->getSessionCombination()->getDriver(),
+            'circuit' => $this->getSessionCombination()->getCircuit(),
+        ], [
+            'datetime' => 'DESC',
+        ]);
+
+        return $records;
+    }
+
+    public function saveRecord(PressureRecord $pressureRecord): void
+    {
+        if (!$this->isCheckedUser($pressureRecord)) {
+            return;
+        }
+
+        $pressureRecord
+            ->setUser($this->user)
+            ->setDatetime(new DateTime('now'));
+
+        if (!$pressureRecord->getId()) {
+            $this->em->persist($pressureRecord);
+        }
+
+        $this->em->flush();
+    }
+
+    public function removeRecord($id): void
+    {
+        $pressureRecord = $this->prr->find($id);
+
+        if (!$this->isCheckedUser($pressureRecord)) {
+            return;
+        }
+
+        $this->em->remove($pressureRecord);
+        $this->em->flush();
     }
 
     public function deltaPressure($temp, $coef)
@@ -63,8 +141,12 @@ class PressureService
         return ($temp - PressureService::TEMP) * $coef;
     }
 
-    public function getPressures(PressureRecord $pressureRecord, $records)
+    public function getPressures(PressureRecord $pressureRecord): PressureRecord
     {
+        // ============================================================================================================================
+        // 0/ RECUPERATION DES ENREGISTREMENTS
+        $records = $this->getRecords();
+
         // ============================================================================================================================
         // 1/ CALCUL DES PRESSIONS CORRIGEES (POUR UNE TEMPERATURE ETALON)
 
@@ -93,15 +175,15 @@ class PressureService
             ];
 
             // Tableau de pressions des pneus
-            $pressTires = [
+            $pressureTires = [
                 $record->getPressFrontLeft(),
                 $record->getPressFrontRight(),
                 $record->getPressRearLeft(),
                 $record->getPressRearRight(),
             ];
 
-            // 1.2.2/ Calcul du delta de pression relatif à la différence de température du sol par rapport à la température étalon
-            $deltaPressureTrack = $this->deltaPressure($record->getTempGround(), PressureService::COEF_TRACK);
+            // 1.2.2/ Calcul du delta de pression relatif à la différence de température piste par rapport à la température étalon
+            $deltaPressureTrack = $this->deltaPressure($record->getTempTrack(), PressureService::COEF_TRACK);
 
             // 1.2.3/ Calcul des deltas de pression relatifs aux différences de température des pneus par rapport à la température étalon
             foreach ($tempTires as $tempTire) {
@@ -110,7 +192,7 @@ class PressureService
 
             // 1.2.4/ Calcul des pressions corrigées pour chaque pneu
             for ($i = 0; $i < sizeof($correctedPressures); $i++) {
-                $correctedPressures[$i][] = $pressTires[$i] + $deltaPressureTrack - $deltaPressureTires[$i];
+                $correctedPressures[$i][] = $pressureTires[$i] + $deltaPressureTrack - $deltaPressureTires[$i];
             }
         }
 
@@ -119,6 +201,7 @@ class PressureService
         for ($i = 0; $i < sizeof($correctedPressures); $i++) {
             $averagePressures[] = array_sum($correctedPressures[$i]) / count($correctedPressures[$i]);
         }
+
         // ============================================================================================================================
         // 3/ CALCUL DES PRESSIONS (POUR DES TEMPERATURES DONNEES)
 
@@ -140,8 +223,8 @@ class PressureService
             $pressureRecord->getTempRearRight(),
         ];
 
-        // 3.2.2/ Calcul du delta de pression relatif à la différence de température du sol par rapport à la température étalon
-        $actualDeltaPressureTrack = $this->deltaPressure($pressureRecord->getTempGround(), PressureService::COEF_TRACK);
+        // 3.2.2/ Calcul du delta de pression relatif à la différence de température piste par rapport à la température étalon
+        $actualDeltaPressureTrack = $this->deltaPressure($pressureRecord->getTempTrack(), PressureService::COEF_TRACK);
 
         // 3.2.3/ Calcul des deltas de pression relatifs aux différences de température des pneus par rapport à la température étalon
         foreach ($actualTempTires as $actualTempTire) {
@@ -153,6 +236,13 @@ class PressureService
             $calculatedPressures[] = $averagePressures[$i] + $actualDeltaPressureTires[$i] - $actualDeltaPressureTrack;
         }
 
-        return $calculatedPressures;
+        // 3.3/ Stockage des pressions
+        $pressureRecord
+            ->setPressFrontLeft($calculatedPressures[0])
+            ->setPressFrontRight($calculatedPressures[1])
+            ->setPressRearLeft($calculatedPressures[2])
+            ->setPressRearRight($calculatedPressures[3]);
+
+        return $pressureRecord;
     }
 }

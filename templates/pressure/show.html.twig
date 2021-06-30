@@ -13,26 +13,27 @@
 	<div class="card mt-5">
 
 		<div class="card-header">
-			<h2>Calcul</h2>
+			<h2>Affichage du relevé</h2>
 		</div>
 
-		<div class="card-body">
-
-			{{ form_start(formView) }}
-
-			{{ form_errors(formView) }}
+		<div
+			class="card-body">
 
 			{# TEMPERATURE PISTE #}
 			<div class="d-flex" style="flex-direction: row; justify-content: center">
 				<div class="card bg-light" style="width: 300px">
-					<div class="card-body text-center">
+					<div
+						class="card-body text-center">
 						{# <h5 class="card-title">Piste</h5> #}
 						<table class="align-middle">
 							<tbody>
 								<tr>
-									<th>Piste : </th>
-									<td><i class="fas fa-thermometer-half"></i></td>
-									<td>{{ form_row(formView.tempTrack) }}</td>
+									<th>Piste :
+									</th>
+									<td>
+										<i class="fas fa-thermometer-half"></i>
+									</td>
+									<td>{{ pressureRecord.tempTrack }}°C</td>
 								</tr>
 							</tbody>
 						</table>
@@ -45,27 +46,33 @@
 
 			<div
 				style="
-					position: relative;
-					height: 400px;
-					width: 100%;
-					background-image: url('{{ asset('img/vehicle.png') }}');
-					background-repeat: no-repeat;
-					background-size: contain;
-					background-position: center">
-			
+															position: relative;
+															height: 400px;
+															width: 100%;
+															background-image: url('{{ asset('img/vehicle.png') }}');
+															background-repeat: no-repeat;
+															background-size: contain;
+															background-position: center">
+
 				{# PNEU AVANT GAUCHE #}
 				<div class="card bg-light" style="position: absolute; top: 40px; left: 20px; width: 200px">
-					<div class="card-body text-center">
+					<div
+						class="card-body text-center">
 						{# <h5 class="card-title">Avant Gauche</h5> #}
 						<table class="align-middle">
 							<tbody>
 								<tr>
-									<th><i class="fas fa-thermometer-half"></i></th>
-									<td>{{ form_row(formView.tempFrontLeft) }}</td>
+									<th>
+										<i class="fas fa-thermometer-half"></i>
+									</th>
+									<td>{{ pressureRecord.tempFrontLeft }}°C</td>
 								</tr>
 								<tr>
-									<th><i class="fas fa-tachometer-alt"></i></th>
-									<td>{{ pressureRecord.pressFrontLeft|number_format(2, ',') }} Bar</td>
+									<th>
+										<i class="fas fa-tachometer-alt"></i>
+									</th>
+									<td>{{ pressureRecord.pressFrontLeft }}
+										Bar</td>
 								</tr>
 							</tbody>
 						</table>
@@ -74,17 +81,23 @@
 
 				{# PNEU AVANT DROIT #}
 				<div class="card bg-light" style="position: absolute; top: 40px; right: 20px; width: 200px">
-					<div class="card-body text-center">
+					<div
+						class="card-body text-center">
 						{# <h5 class="card-title">Avant Droit</h5> #}
 						<table class="align-middle">
 							<tbody>
 								<tr>
-									<th><i class="fas fa-thermometer-half"></i></th>
-									<td>{{ form_row(formView.tempFrontRight) }}</td>
+									<th>
+										<i class="fas fa-thermometer-half"></i>
+									</th>
+									<td>{{ pressureRecord.tempFrontRight }}°C</td>
 								</tr>
 								<tr>
-									<th><i class="fas fa-tachometer-alt"></i></th>
-									<td>{{ pressureRecord.pressFrontRight|number_format(2, ',') }} Bar</td>
+									<th>
+										<i class="fas fa-tachometer-alt"></i>
+									</th>
+									<td>{{ pressureRecord.pressFrontRight }}
+										Bar</td>
 								</tr>
 							</tbody>
 						</table>
@@ -96,20 +109,26 @@
 					<div class="mx-5">Gauche</div>
 					<div class="mx-5">Droite</div>
 				</div>
-			
+
 				{# PNEU ARRIERE GAUCHE #}
 				<div class="card bg-light" style="position: absolute; bottom: 0px; left: 20px; width: 200px">
-					<div class="card-body text-center">
+					<div
+						class="card-body text-center">
 						{# <h5 class="card-title">Arrière Gauche</h5> #}
 						<table class="align-middle">
 							<tbody>
 								<tr>
-									<th><i class="fas fa-thermometer-half"></i></th>
-									<td>{{ form_row(formView.tempRearLeft) }}</td>
+									<th>
+										<i class="fas fa-thermometer-half"></i>
+									</th>
+									<td>{{ pressureRecord.tempRearLeft }}°C</td>
 								</tr>
 								<tr>
-									<th><i class="fas fa-tachometer-alt"></i></th>
-									<td>{{ pressureRecord.pressRearLeft|number_format(2, ',') }} Bar</td>
+									<th>
+										<i class="fas fa-tachometer-alt"></i>
+									</th>
+									<td>{{ pressureRecord.pressRearLeft }}
+										Bar</td>
 								</tr>
 							</tbody>
 						</table>
@@ -118,17 +137,23 @@
 
 				{# PNEU ARRIERE DROIT #}
 				<div class="card bg-light" style="position: absolute; bottom: 0px; right: 20px; width: 200px">
-					<div class="card-body text-center">
+					<div
+						class="card-body text-center">
 						{# <h5 class="card-title">Arrière Droit</h5> #}
 						<table class="align-middle">
 							<tbody>
 								<tr>
-									<th><i class="fas fa-thermometer-half"></i></th>
-									<td>{{ form_row(formView.tempRearRight) }}</td>
+									<th>
+										<i class="fas fa-thermometer-half"></i>
+									</th>
+									<td>{{ pressureRecord.tempRearRight }}°C</td>
 								</tr>
 								<tr>
-									<th><i class="fas fa-tachometer-alt"></i></th>
-									<td>{{ pressureRecord.pressRearRight|number_format(2, ',') }} Bar</td>
+									<th>
+										<i class="fas fa-tachometer-alt"></i>
+									</th>
+									<td>{{ pressureRecord.pressRearRight }}
+										Bar</td>
 								</tr>
 							</tbody>
 						</table>
@@ -139,15 +164,25 @@
 			{# ETIQUETTE ARRIERRE #}
 			<div class="text-center">Arrière</div>
 
-			{# BOUTON #}
-			<div class="d-flex" style="justify-content: center">
-				<button type="submit" class="btn btn-primary mt-3">
-					<i class="fas fa-arrow-right"></i>
-					Calculer
-				</button>
+			{# COMMENTAIRE #}
+			Commentaire :
+			<div class="card border-light">
+				<div class="card-body">
+					{{ pressureRecord.note }}
+				</div>
 			</div>
 
-			{{ form_end(formView) }}
+			{# BOUTON #}
+			<div class="d-flex mt-3" style="justify-content: space-around">
+				<a href="{{ path('pressure_edit', {'id': id}) }}" class="btn btn-warning">
+					<i class="fas fa-edit"></i>
+					Modifier
+				</a>
+				<a href="{{ path('pressure_remove', {'id': id}) }}" class="btn btn-danger">
+					<i class="fas fa-trash"></i>
+					Supprimer
+				</a>
+			</div>
 
 		</div>
 	</div>

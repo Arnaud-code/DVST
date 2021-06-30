@@ -1,6 +1,19 @@
 <a href="{{ path('product_show', {'category_slug': p.category.slug, 'slug': p.slug}) }}">
-	<div class="mb-5" style="height: 150px; text-align: center; background: #e5e7e7; border-radius: 15px">
-		<i class="fas fa-{{ p.icon }} fa-4x"></i>
-		<h2>{{ p.name }}</h2>
+	<div class="mb-5 pt-3" style="height: 150px; text-align: center; background: #e5e7e7; border-radius: 15px">
+		<i class="fas fa-{{ p.icon }} fa-3x"></i>
+		<h2 class="h3">{{ p.name }}</h2>
+		{% if p.access != "free"  %}
+			{% if p in subscriptions %}
+				<i class="fas fa-lock-open"></i>
+			{% else %}
+				<i class="fas fa-lock"></i>
+			{% endif %}
+
+			{# {% if p.subscriptions.users %}
+																																																																									<i class="fas fa-unlock"></i>
+																																																																								{% else %}
+																																																																									<i class="fas fa-lock"></i>
+																																																																								{% endif %} #}
+		{% endif %}
 	</div>
 </a>

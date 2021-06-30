@@ -56,6 +56,7 @@ class Category
 
     /**
      * @ORM\OneToMany(targetEntity=Product::class, mappedBy="category")
+     * @ORM\OrderBy({"sort" = "ASC"})
      */
     private $products;
 

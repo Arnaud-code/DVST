@@ -2,22 +2,14 @@
 
 namespace App\Controller;
 
-use App\Entity\PressureRecord;
-use App\Entity\Product;
-use App\Entity\Tire;
-use App\Entity\User;
-use App\Form\PressureAddType;
-use App\Form\PressureCalculType;
-use App\Form\PressureConditionsType;
+use App\Form\PressureEditType;
+use App\Form\PressureCalculationType;
+use App\Form\PressureCombinationType;
 use App\Pressure\PressureService;
 use App\Repository\PressureRecordRepository;
 use App\Repository\ProductRepository;
-use DateTime;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -27,12 +19,17 @@ class PressureController extends AbstractController
     protected $productRepository;
     protected $session;
 
-    public function __construct(PressureRecordRepository $pressureRecordRepository, ProductRepository $productRepository, SessionInterface $session, PressureService $pressureService)
-    {
+    public function __construct(
+        PressureRecordRepository $pressureRecordRepository,
+        ProductRepository $productRepository,
+        SessionInterface $session,
+        PressureService $pressureService
+    ) {
         $this->pressureRecordRepository = $pressureRecordRepository;
         $this->product = $productRepository->findOneBy(['slug' => 'pressure']);
         $this->session = $session;
         $this->pressureService = $pressureService;
+        $this->sessionPressureRecord = $this->pressureService->getSessionCombination();
     }
 
     /**
@@ -46,61 +43,44 @@ class PressureController extends AbstractController
         // si utilisateur pas autorisé
         // alors info + redirection ...?
 
-        // si configuration non choisie dans session
-        // dd($user);
-        // alors redirection vers configurateur
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
 
-        $sessionTire = $this->pressureService->getSessionTire();
-        $sessionDriver = $this->pressureService->getSessionDriver();
-        $sessionCircuit = $this->pressureService->getSessionCircuit();
-
-        if (!$sessionTire || !$sessionDriver || !$sessionCircuit) {
-            return $this->redirectToRoute("pressure_conditions");
+        // Test si configuration choisie dans session
+        if (!$this->sessionPressureRecord) {
+            return $this->redirectToRoute('pressure_combination');
         }
 
         return $this->redirectToRoute('pressure_list');
-        // return $this->render('pressure/index.html.twig', [
-        //     'product' => $this->product,
-        //     'sessionTire' => $sessionTire,
-        //     'sessionDriver' => $sessionDriver,
-        //     'sessionCircuit' => $sessionCircuit,
-        // ]);
     }
 
     /**
-     * @Route("/tool/pressure/conditions", name="pressure_conditions")
+     * @Route("/tool/pressure/combination", name="pressure_combination")
      */
-    public function conditions(Request $request)
+    public function combination(Request $request)
     {
-        // $conditions = new PressureRecord;
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
 
-        // $form = $this->createForm(PressureConditionsType::class, $conditions);
-        $form = $this->createForm(PressureConditionsType::class);
+        $form = $this->createForm(PressureCombinationType::class, $this->sessionPressureRecord);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $conditions = $form->getData();
 
-            $this->session->set('sessionTireId', $conditions->getTire()->getId());
-            $this->session->set('sessionDriverId', $conditions->getDriver()->getId());
-            $this->session->set('sessionCircuitId', $conditions->getCircuit()->getId());
+            $pressureRecord = $form->getData();
+
+            $this->pressureService->setSessionCombination($pressureRecord);
 
             return $this->redirectToRoute('pressure');
         }
 
         $formView = $form->createView();
 
-        $summaries = $this->pressureRecordRepository->getSummaryByUser($this->getUser());
-        // dd($summaries);
+        $combinations = $this->pressureRecordRepository->getCombinationsByUser($this->getUser());
 
-        // $pressureRecords = $this->getUser()->getPressureRecords();
-        // dd($pressureRecords);
-
-
-        return $this->render('pressure/conditions.html.twig', [
+        return $this->render('pressure/combination.html.twig', [
+            'product' => $this->product,
             'formView' => $formView,
-            'summaries' => $summaries,
+            'combinations' => $combinations,
         ]);
     }
 
@@ -109,25 +89,62 @@ class PressureController extends AbstractController
      */
     public function list()
     {
-        $sessionTire = $this->pressureService->getSessionTire();
-        $sessionDriver = $this->pressureService->getSessionDriver();
-        $sessionCircuit = $this->pressureService->getSessionCircuit();
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
 
-        $records = $this->pressureRecordRepository->findBy([
-            'user' => $this->getUser(),
-            'tire' => $sessionTire,
-            'driver' => $sessionDriver,
-            'circuit' => $sessionCircuit,
-        ], [
-            'datetime' => 'DESC',
-        ]);
+        $records = $this->pressureService->getRecords();
 
         return $this->render('pressure/list.html.twig', [
             'product' => $this->product,
+            'pressureRecord' => $this->sessionPressureRecord,
             'records' => $records,
-            'sessionTire' => $sessionTire,
-            'sessionDriver' => $sessionDriver,
-            'sessionCircuit' => $sessionCircuit,
+        ]);
+    }
+
+    /**
+     * @Route("/tool/pressure/show/{id}", name="pressure_show")
+     */
+    public function show($id)
+    {
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
+
+        $pressureRecord = $this->pressureRecordRepository->find($id);
+
+        return $this->render('pressure/show.html.twig', [
+            'product' => $this->product,
+            'pressureRecord' => $pressureRecord,
+            'id' => $id,
+        ]);
+    }
+
+    /**
+     * @Route("/tool/pressure/edit/{id}", name="pressure_edit")
+     */
+    public function edit($id = null, Request $request)
+    {
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
+
+        if ($id) {
+            $this->sessionPressureRecord = $this->pressureRecordRepository->find($id);
+        }
+
+        $form = $this->createForm(PressureEditType::class, $this->sessionPressureRecord);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $this->pressureService->saveRecord($this->sessionPressureRecord);
+
+            return $this->redirectToRoute('pressure_list');
+        }
+
+        $formView = $form->createView();
+
+        return $this->render('pressure/edit.html.twig', [
+            'product' => $this->product,
+            'formView' => $formView,
+            'pressureRecord' => $this->sessionPressureRecord,
+            'id' => $id,
         ]);
     }
 
@@ -136,104 +153,51 @@ class PressureController extends AbstractController
      */
     public function remove($id)
     {
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
+
+        // check si champ caché existe pour controler le passage par le formulaire
         // contrôle propriétaire
-        // contrôle conditions
+        // contrôle combination
+        $this->pressureService->removeRecord($id);
         // redirection list
-    }
-
-    /**
-     * @Route("/tool/pressure/add", name="pressure_add")
-     */
-    public function add(Request $request, EntityManagerInterface $em)
-    {
-        $sessionTire = $this->pressureService->getSessionTire();
-        $sessionDriver = $this->pressureService->getSessionDriver();
-        $sessionCircuit = $this->pressureService->getSessionCircuit();
-
-        $pressureRecord = new PressureRecord;
-        $form = $this->createForm(PressureAddType::class, $pressureRecord);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $pressureRecord
-                ->setUser($this->getUser())
-                ->setTire($sessionTire)
-                ->setDriver($sessionDriver)
-                ->setCircuit($sessionCircuit)
-                ->setDatetime(new DateTime('now'));
-
-            // dd($pressureRecord);
-            $em->persist($pressureRecord);
-            $em->flush();
-
-            return $this->redirectToRoute('pressure_list');
-        }
-
-        $formView = $form->createView();
-
-        return $this->render('pressure/add.html.twig', [
-            'product' => $this->product,
-            'formView' => $formView,
-            'sessionTire' => $sessionTire,
-            'sessionDriver' => $sessionDriver,
-            'sessionCircuit' => $sessionCircuit,
-        ]);
+        return $this->redirectToRoute('pressure_list');
     }
 
     /**
      * @Route("/tool/pressure/calculation", name="pressure_calculation")
      */
-    public function calculation(Request $request, PressureRecordRepository $pressureRecordRepository)
+    public function calculation(Request $request)
     {
-        $sessionTire = $this->pressureService->getSessionTire();
-        $sessionDriver = $this->pressureService->getSessionDriver();
-        $sessionCircuit = $this->pressureService->getSessionCircuit();
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
 
-        $pressureRecord = new PressureRecord;
-        $form = $this->createForm(PressureCalculType::class, $pressureRecord);
+        $form = $this->createForm(PressureCalculationType::class, $this->sessionPressureRecord);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $records = $pressureRecordRepository->findBy([
-                'user' => $this->getUser(),
-                'tire' => $sessionTire,
-                'driver' => $sessionDriver,
-                'circuit' => $sessionCircuit,
-            ]);
-            $pressures = $this->pressureService->getPressures($pressureRecord, $records);
-            $pressureRecord
-                ->setPressFrontLeft($pressures[0])
-                ->setPressFrontRight($pressures[1])
-                ->setPressRearLeft($pressures[2])
-                ->setPressRearRight($pressures[3]);
-            // dd($pressureRecord);
+
+            $this->sessionPressureRecord = $this->pressureService->getPressures($this->sessionPressureRecord);
         }
 
         $formView = $form->createView();
 
-        // si formulaire soumis...
-        // $pressures = $this->pressureService->getPressures($records);
         return $this->render('pressure/calculation.html.twig', [
             'product' => $this->product,
             'formView' => $formView,
-            'sessionTire' => $sessionTire,
-            'sessionDriver' => $sessionDriver,
-            'sessionCircuit' => $sessionCircuit,
-            'pressureRecord' => $pressureRecord,
+            'pressureRecord' => $this->sessionPressureRecord,
         ]);
     }
 
     /**
-     * @Route("/tool/pressure/set-conditions/{tire}/{driver}/{circuit}", name="pressure_set-conditions")
+     * @Route("/tool/pressure/set-combination/{tire}/{driver}/{circuit}", name="pressure_set-combination")
      */
-    public function setConditions($tire, $driver, $circuit)
+    public function setCombination($tire, $driver, $circuit)
     {
-        $this->session->set('sessionTireId', $tire);
-        $this->session->set('sessionDriverId', $driver);
-        $this->session->set('sessionCircuitId', $circuit);
+        $this->denyAccessUnlessGranted('CAN_USE', $this->product);
+
+        $this->session->set('tireId', $tire);
+        $this->session->set('driverId', $driver);
+        $this->session->set('circuitId', $circuit);
 
         return $this->redirectToRoute('pressure');
     }

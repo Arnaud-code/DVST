@@ -1,0 +1,60 @@
+<div class="card mt-3">
+	<div class="card-header">
+		<h2>Configuration</h2>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-9">
+				<div style="display: flex; flex-direction: column; justify-content: center; align-items: center">
+					<div style="width: 100%">
+						<table style="width: 100%">
+							<tbody>
+								<tr>
+									<td style="color: #95a5a6">
+										Pneu
+									</td>
+									<td>
+										<div class="form-control" style="background: #ecf0f1; color: #95a5a6">
+											{{ pressureRecord.tire.name }}
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td style="color: #95a5a6">
+										Pilote
+									</td>
+									<td>
+										<div class="form-control" style="background: #ecf0f1; color: #95a5a6">
+											{{ pressureRecord.driver.name }}
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td style="color: #95a5a6">
+										Circuit
+									</td>
+									<td>
+										<div class="form-control" style="background: #ecf0f1; color: #95a5a6">
+											{{ pressureRecord.circuit.name }}
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-3">
+				<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%">
+					<div>
+						<a href="{{ path("pressure_combination") }}" class="btn btn-warning">
+							<i class="fas fa-exchange-alt"></i>
+							Modifier
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

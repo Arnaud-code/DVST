@@ -45,7 +45,7 @@ class PressureRecord
     /**
      * @ORM\Column(type="smallint")
      */
-    private $tempGround;
+    private $tempTrack;
 
     /**
      * @ORM\Column(type="smallint")
@@ -86,6 +86,11 @@ class PressureRecord
      * @ORM\Column(type="float")
      */
     private $pressRearRight;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $note;
 
     public function getId(): ?int
     {
@@ -153,14 +158,14 @@ class PressureRecord
         return $this;
     }
 
-    public function getTempGround(): ?int
+    public function getTempTrack(): ?int
     {
-        return $this->tempGround;
+        return $this->tempTrack;
     }
 
-    public function setTempGround(int $tempGround): self
+    public function setTempTrack(int $tempTrack): self
     {
-        $this->tempGround = $tempGround;
+        $this->tempTrack = $tempTrack;
 
         return $this;
     }
@@ -257,6 +262,18 @@ class PressureRecord
     public function setPressRearRight(float $pressRearRight): self
     {
         $this->pressRearRight = $pressRearRight;
+
+        return $this;
+    }
+
+    public function getNote(): ?string
+    {
+        return $this->note;
+    }
+
+    public function setNote(?string $note): self
+    {
+        $this->note = $note;
 
         return $this;
     }

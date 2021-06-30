@@ -16,6 +16,10 @@ class ProductController extends AbstractController
     {
         $product = $productRepository->findOneBy(['slug' => $slug]);
 
+        if ($product->getAccess() !== "free") {
+            $this->denyAccessUnlessGranted('CAN_USE', $product);
+        }
+
         return $this->render('product/show.html.twig', [
             'product' => $product,
         ]);

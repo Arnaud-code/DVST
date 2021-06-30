@@ -63,12 +63,18 @@ class User implements UserInterface
      */
     private $pressureRecords;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Subscription::class, mappedBy="user")
+     */
+    private $subscriptions;
+
     public function __construct()
     {
         $this->tires = new ArrayCollection();
         $this->drivers = new ArrayCollection();
         $this->circuits = new ArrayCollection();
         $this->pressureRecords = new ArrayCollection();
+        $this->subscriptions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -278,6 +284,36 @@ class User implements UserInterface
             // set the owning side to null (unless already changed)
             if ($pressureRecord->getUser() === $this) {
                 $pressureRecord->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Subscription[]
+     */
+    public function getSubscriptions(): Collection
+    {
+        return $this->subscriptions;
+    }
+
+    public function addSubscription(Subscription $subscription): self
+    {
+        if (!$this->subscriptions->contains($subscription)) {
+            $this->subscriptions[] = $subscription;
+            $subscription->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscription(Subscription $subscription): self
+    {
+        if ($this->subscriptions->removeElement($subscription)) {
+            // set the owning side to null (unless already changed)
+            if ($subscription->getUser() === $this) {
+                $subscription->setUser(null);
             }
         }
 
